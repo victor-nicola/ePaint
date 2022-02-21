@@ -36,7 +36,15 @@ router.post( "/getFeed", async( req, res ) => {
             return 0;
         });
     }
-    res.send( feed );
+
+    var ans = [], cnt = 0;
+    for ( var i = 0; i < user.noFollowing; i ++ )
+        for ( var j = 0; j < feed[i].length; j ++ ) {
+            ans[cnt] = { post: feed[i][j], user: await User.findById( { _id: feed[i][j].userId } ) };
+            cnt ++;
+        }
+
+    res.send( ans );
 });
 
 router.post( "/getFollowers", async( req, res ) => {
@@ -44,8 +52,7 @@ router.post( "/getFollowers", async( req, res ) => {
     const followersList = await Followers.find( { followedId: req.body.user._id } );
     const userList = [];
     for ( var i = 0; i < req.body.user.noFollowers; i ++ ) {
-        const aux = await User.findById( { _id: followersList[i].followerId } );
-        userList[i] = aux;
+        userList[i] = await User.findById( { _id: followersList[i].followerId } );
     }
     res.send( userList );
 });

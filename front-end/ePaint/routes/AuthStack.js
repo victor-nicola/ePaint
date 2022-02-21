@@ -16,8 +16,9 @@ const Stack = createStackNavigator();
 
 export default function authStack() {
     //const ipString = "http://172.20.10.3:3000/"; // hotspot iphone vodafone
-    //const ipString = "http://192.168.1.176:3000/"; // acasa
-    const ipString = "http://192.168.1.140:3000/"; // raspberry pi internal ip
+    const ipString = "http://192.168.1.176:3000/"; // acasa
+    //const ipString = "http://192.168.1.140:3000/"; // raspberry pi internal ip
+    //const ipString = "http://epaint.ddns.net:3000/"; // no ip
     //const ipString = "http://192.168.1.103:3000/";
     
     const initLogInState = {

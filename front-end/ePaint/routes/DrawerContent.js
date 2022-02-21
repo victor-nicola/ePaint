@@ -32,7 +32,7 @@ export function DrawerContent( props ) {
                         }
                         label = "Home"
                         
-                        style = {{borderBottomColor: "#fff"}}
+                        labelStyle = {styles.Home}
                         onPress = {() => {
                             props.navigation.navigate( "homeScreen" );
                         }}
@@ -73,5 +73,8 @@ const styles = StyleSheet.create({
     AvatarImage: {
         alignSelf: "center",
         margin: 5
+    },
+    Home: {
+        color: "white"
     }
 });

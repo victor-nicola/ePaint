@@ -1,25 +1,137 @@
+import React, { useContext, useEffect, useState } from "react";
+import { FlatList, StyleSheet, Image, TouchableOpacity, View, Text } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, StyleSheet, TouchableOp, TouchableOpacity, Image } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { EnvContext } from "../../containers/envContext";
+import { Avatar, Caption, Title } from "react-native-paper";
 
-/*const Item = ( {post, onPress} ) => {
+const Item = ( {elem, onPress, toLikers} ) => {
     const { ipString } = useContext( EnvContext );
+    const [isLiked, setIsLiked] = useState( Boolean );
+
+    const checkLike = async() => {
+        var token = await AsyncStorage.getItem( "userToken" );
     
-    //console.log( post );
+        const options = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify( {token: token, post: elem.post} )
+        };
+    
+        await fetch( ipString + "api/user/checkLike", options )
+        .then((res) => res.json())
+        .then((res) => setIsLiked(res));
+    };
+
+    const like = async() => {
+        var token = await AsyncStorage.getItem( "userToken" );
+    
+        const options = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify( {token: token, post: elem.post} )
+        };
+    
+        await fetch( ipString + "api/user/like", options )
+        .then((res) => res.text())
+        .then((res) => alert(res));
+    };
+
+    const dislike = async() => {
+        var token = await AsyncStorage.getItem( "userToken" );
+    
+        const options = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify( {token: token, post: elem.post} )
+        };
+    
+        await fetch( ipString + "api/user/dislike", options )
+        .then((res) => res.text())
+        .then((res) => alert(res));
+    };
+
+    checkLike();
 
     return (
-        <TouchableOpacity style = {styles.LogoBanner} onPress = {onPress}>
-            <View style = {{flexDirection: "row", alignContent: "center"}}>
-                <Avatar.Image style = { styles.AvatarImage } source = {{uri: ipString + "images/" + user.image}} size = {25} />
-                <View>
-                    <Caption style = {{margin: 5, fontSize: 15, bottom: 5}}>@{user.username}</Caption>
+        <View>
+            <TouchableOpacity style = {{flexDirection: "row", backgroundColor: "#3b3b3b"}} onPress = {onPress}>
+                <View style = {{flexDirection: "row", alignContent: "center"}}>
+                    <Avatar.Image style = { styles.AvatarImage } source = {{uri: ipString + "images/" + elem.user.image}} size = {30} />
+                    <View>
+                        <Title style = {{fontSize: 15, color: "#ffffff"}}>@{elem.user.username}</Title>
+                    </View>
                 </View>
+            </TouchableOpacity>
+            <View style = {{flex: 1, alignItems: "center", justifyContent: "center"}} >
+                <Image style = { styles.PostImage } source = {{uri: ipString + "images/" + elem.post.image}}/>
             </View>
-        </TouchableOpacity>
+            <View style = {{flexDirection: "row", marginLeft: 10}}>
+                { !isLiked && <TouchableOpacity onPress = {() => { like(); }}>
+                    <AntDesign name = "like2" size = {30} color = "white"/>
+                </TouchableOpacity> }
+                { isLiked && <TouchableOpacity onPress = {() => { dislike(); }}>
+                    <AntDesign name = "like1" size = {30} color = "white"/>
+                </TouchableOpacity> }
+            </View>
+            <View style = {{marginBottom: 10, marginLeft: 10}} >
+                { elem.post.likes > 1 && <TouchableOpacity onPress = {toLikers}>
+                    <Caption style = {{fontSize: 13, color: "#ffffff"}}>{elem.post.likes} likes</Caption>
+                </TouchableOpacity> }
+                { elem.post.likes == 1 && <TouchableOpacity onPress = {toLikers}>
+                    <Caption style = {{fontSize: 13, color: "#ffffff"}}>{elem.post.likes} like</Caption>
+                </TouchableOpacity> }
+                { elem.post.likes == 0 && <TouchableOpacity>
+                    <Caption style = {{fontSize: 13, color: "#ffffff"}}>{elem.post.likes} likes</Caption>
+                </TouchableOpacity> }
+            </View>
+        </View>
     );
-};*/
+};
 
 export default function homeScreen( {navigation} ) {
+    const { ipString } = useContext( EnvContext );
+    const [data, setData] = useState( [] );
+
+    const getFeed = async() => {
+        var token = await AsyncStorage.getItem( "userToken" );
+    
+        const options = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify( {token: token} )
+        };
+    
+        await fetch( ipString + "api/user/getFeed", options )
+        .then((res) => res.json())
+        .then((res) => setData(res));
+    };
+
+    useEffect( () => {
+        setData( [] );
+        getFeed();
+    },[]);
+
+    const renderItem = ( {item} ) => {
+        const onPress = () => {
+            navigation.navigate( "userProfile", {searchedUser: item.user} );
+        };
+        const toLikers = () => {
+            navigation.navigate( "likersScreen", {post: item.post} );
+        };
+        return (
+            <Item onPress = {() => onPress()} elem = {item} toLikers = {toLikers} />
+        );
+    };
+
     return (
         <View style = {styles.View}>
             <View style = {styles.LogoBanner} >
@@ -28,6 +140,12 @@ export default function homeScreen( {navigation} ) {
                     <AntDesign style = {{margin: 5}} name = "search1" size = { 24 } color = "#fff" />
                 </TouchableOpacity>
             </View>
+            <FlatList 
+                data = {data}
+                renderItem = {renderItem}
+                keyExtractor = {item => item.post._id}
+                scrollEnabled = {true}
+            />
         </View>
     );
 }
@@ -38,6 +156,10 @@ const styles = StyleSheet.create({
         //justifyContent: "center",
         //alignItems: "center"
         backgroundColor: "#3b3b3b"
+    },
+    AvatarImage: {
+        alignSelf: "center",
+        margin: 5
     },
     Text: {
         fontSize: 20
@@ -51,9 +173,15 @@ const styles = StyleSheet.create({
         backgroundColor: "#3b3b3b",
         margin: 5
     },
+    PostImage : {
+        resizeMode: "center",
+        width: 300,
+        height: 300
+    },
     LogoBanner: {
         flexDirection: "row",
         marginTop: 60,
+        marginBottom: 10,
         backgroundColor: "#3b3b3b"
     },
     SearchBtn: {

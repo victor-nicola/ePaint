@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, TextInput, Touchable, TouchableOpacity, View } fr
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EnvContext } from "../../containers/envContext";
-import { Avatar, Caption, Title } from "react-native-paper";
+import { Avatar, Caption, Text, Title } from "react-native-paper";
 
 const Item = ( {user, onPress} ) => {
     const { ipString } = useContext( EnvContext );
@@ -23,15 +23,12 @@ const Item = ( {user, onPress} ) => {
     );
 };
 
-export default function searchScreen( {navigation} ) {
+export default function likersScreen( {navigation, route: {params}} ) {
     const { ipString } = useContext( EnvContext );
-    const [data, setData] = useState( [] );
-    
-    const getSearchedUser = async( searchedString ) => {
-        if ( !searchedString ) {
-            setData([]);
-            return;
-        } 
+    const [data, setData] = useState([]);
+    const {post} = params;
+
+    const getLikers = async() => {
         var token = await AsyncStorage.getItem( "userToken" );
     
         const options = {
@@ -39,16 +36,17 @@ export default function searchScreen( {navigation} ) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify( {token: token, searchedString: searchedString} )
+            body: JSON.stringify( {token: token, post: post} )
         };
     
-        await fetch( ipString + "api/user/getSearchedUsers", options )
+        await fetch( ipString + "api/user/getLikers", options )
         .then((res) => res.json())
         .then((res) => setData(res));
     };
 
     useEffect( () => {
         setData( [] );
+        getLikers();
     },[]);
 
     const renderItem = ( {item} ) => {
@@ -60,18 +58,9 @@ export default function searchScreen( {navigation} ) {
         );
     };
 
-    //console.log( data );
-
     return (
         <View style = {{flex: 1, backgroundColor: "#3b3b3b"}} >
-            <View style = {styles.LogoBannerView}>
-                <TouchableOpacity style = {styles.BackBtn} onPress = { () => {navigation.goBack(null)} } >
-                    <Ionicons style = {{alignSelf: "center"}} name = "chevron-back" size = {24} color = "#fff" />
-                </TouchableOpacity>
-                <View style = {styles.TextInputContainer}>
-                    <TextInput style = {styles.TextInput} placeholder = {"Who are you looking for?"} placeholderTextColor = "#fff" onChangeText = { ( text ) => getSearchedUser( text ) } />
-                </View>
-            </View>
+            <View style = {styles.LogoBannerView}></View>
             <FlatList 
                 data = {data}
                 renderItem = {renderItem}

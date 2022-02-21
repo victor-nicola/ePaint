@@ -7,6 +7,7 @@ import SearchScreen from "../assets/screens/searchScreen";
 import MakePostScreen from "../assets/screens/makePostScreen";
 import FollowerScreen from "../assets/screens/followerScreen";
 import FollowingScreen from "../assets/screens/followingScreen";
+import LikersScreen from "../assets/screens/likersScreen";
 import { UserContext } from "../containers/userContext";
 
 const Stack = createStackNavigator();
@@ -21,6 +22,7 @@ export default function AppStack() {
             <Stack.Screen name = "makePostScreen" component = {MakePostScreen}/>
             <Stack.Screen name = "followerScreen" component = {FollowerScreen}/>
             <Stack.Screen name = "followingScreen" component = {FollowingScreen}/>
+            <Stack.Screen name = "likersScreen" component = {LikersScreen}/>
         </Stack.Navigator>
     );
 }

@@ -3,6 +3,7 @@ const jwt = require( "jsonwebtoken" );
 const Post = require( "../models/post" );
 const User = require( "../models/user" );
 const Comment = require( "../models/comment" );
+const Likes = require( "../models/likes" );
 const multer = require( "multer" );
 var upload = multer( { dest: "assets/postPics/" } );
 
@@ -39,14 +40,52 @@ router.post( "/deletePost", async( req, res ) => {
 
 router.post( "/like", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    await Post.updateOne( { _id: req.body.post._id }, { likes: req.body.post.likes + 1 } );
-    res.send( "Liked" );
+    const liked = await Likes.findOne( { userId: decodedToken._id, postId: req.body.post._id } );
+    if ( liked )
+        return res.send( "Already liked" );
+
+    const like = new Likes({
+        userId: decodedToken._id,
+        postId: req.body.post._id
+    });
+    try {
+        await like.save();
+        await Post.updateOne( { _id: req.body.post._id }, { likes: req.body.post.likes + 1 } );
+        res.send( "Liked" );
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+router.post( "/getLikers", async( req, res ) => {
+    const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
+    const likersList = await Likes.find( { postId: req.body.post._id } );
+    const userList = [];
+    for ( var i = 0; i < req.body.post.likes; i ++ )
+        userList[i] = await User.findById( { _id: likersList[i].userId } );
+    res.send( userList );
 });
 
 router.post( "/dislike", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
+    const liked = await Likes.findOne( { userId: decodedToken._id, postId: req.body.post._id } );
+    if ( !liked )
+        return res.send( "Not liked" );
+
+    await Likes.deleteOne( { userId: decodedToken._id, postId: req.body.post._id } );
+    
     await Post.updateOne( { _id: req.body.post._id }, { likes: req.body.post.likes - 1 } );
     res.send( "Disliked" );
+});
+
+router.post( "/checkLike", async( req, res ) => {
+    var decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
+    const isLiked = await Likes.findOne( {userId: decodedToken._id, postId: req.body.post._id} );
+    if ( isLiked ) {
+        res.send( true );
+        return;
+    }
+    res.send( false );
 });
 
 router.post( "/getComments", async( req, res ) => {
