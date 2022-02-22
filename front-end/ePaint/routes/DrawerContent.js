@@ -1,4 +1,4 @@
-import { DrawerView, DrawerContentScrollView } from "@react-navigation/drawer";
+import { DrawerItem, DrawerContentScrollView } from "@react-navigation/drawer";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { AuthContext } from "../containers/authContext";
@@ -24,7 +24,7 @@ export function DrawerContent( props ) {
                         </View>
                     </View>
                     <Drawer.Section>
-                        <Drawer.Item
+                        <DrawerItem
                         icon = {
                             () => (
                                 <AntDesign name = "home" size = {24} color = "#fff"/>
@@ -32,18 +32,19 @@ export function DrawerContent( props ) {
                         }
                         label = "Home"
                         
-                        labelStyle = {styles.Home}
+                        labelStyle = {{color: "#ffffff"}}
                         onPress = {() => {
                             props.navigation.navigate( "homeScreen" );
                         }}
                         />
-                        <Drawer.Item 
+                        <DrawerItem 
                         icon = {
                             () => (
                                 <AntDesign name = "user" size = {24} color = "#fff"/>
                             )
                         }
                         label = "User"
+                        labelStyle = {{color: "#ffffff"}}
                         onPress = {() => {
                             props.navigation.navigate( "userProfile", {searchedUser: user} );
                         }}/>
@@ -51,13 +52,14 @@ export function DrawerContent( props ) {
                 </View>
             </DrawerContentScrollView>
             <Drawer.Section>
-                <Drawer.Item 
+                <DrawerItem 
                 icon = {
                     () => (
                         <FontAwesome name = "sign-out" color = "#fff" size = {24}/>                       
                     )
                 }
                 label = "Sign out"
+                labelStyle = {{color: "#ffffff"}}
                 onPress = {
                     () => {
                         logOut();
@@ -73,8 +75,5 @@ const styles = StyleSheet.create({
     AvatarImage: {
         alignSelf: "center",
         margin: 5
-    },
-    Home: {
-        color: "white"
     }
 });

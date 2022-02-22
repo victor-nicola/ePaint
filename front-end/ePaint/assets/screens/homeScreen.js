@@ -1,64 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import { FlatList, StyleSheet, Image, TouchableOpacity, View, Text } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Fontisto } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EnvContext } from "../../containers/envContext";
 import { Avatar, Caption, Title } from "react-native-paper";
 
-const Item = ( {elem, onPress, toLikers} ) => {
+const Item = ( {elem, onPress, toLikers, like, dislike, toComments} ) => {
     const { ipString } = useContext( EnvContext );
-    const [isLiked, setIsLiked] = useState( Boolean );
-
-    const checkLike = async() => {
-        var token = await AsyncStorage.getItem( "userToken" );
     
-        const options = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify( {token: token, post: elem.post} )
-        };
-    
-        await fetch( ipString + "api/user/checkLike", options )
-        .then((res) => res.json())
-        .then((res) => setIsLiked(res));
-    };
-
-    const like = async() => {
-        var token = await AsyncStorage.getItem( "userToken" );
-    
-        const options = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify( {token: token, post: elem.post} )
-        };
-    
-        await fetch( ipString + "api/user/like", options )
-        .then((res) => res.text())
-        .then((res) => alert(res));
-    };
-
-    const dislike = async() => {
-        var token = await AsyncStorage.getItem( "userToken" );
-    
-        const options = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify( {token: token, post: elem.post} )
-        };
-    
-        await fetch( ipString + "api/user/dislike", options )
-        .then((res) => res.text())
-        .then((res) => alert(res));
-    };
-
-    checkLike();
-
     return (
         <View>
             <TouchableOpacity style = {{flexDirection: "row", backgroundColor: "#3b3b3b"}} onPress = {onPress}>
@@ -73,12 +22,15 @@ const Item = ( {elem, onPress, toLikers} ) => {
                 <Image style = { styles.PostImage } source = {{uri: ipString + "images/" + elem.post.image}}/>
             </View>
             <View style = {{flexDirection: "row", marginLeft: 10}}>
-                { !isLiked && <TouchableOpacity onPress = {() => { like(); }}>
+                { !elem.isLiked && <TouchableOpacity onPress = {like}>
                     <AntDesign name = "like2" size = {30} color = "white"/>
                 </TouchableOpacity> }
-                { isLiked && <TouchableOpacity onPress = {() => { dislike(); }}>
+                { elem.isLiked && <TouchableOpacity onPress = {dislike}>
                     <AntDesign name = "like1" size = {30} color = "white"/>
                 </TouchableOpacity> }
+                <TouchableOpacity style = {{paddingLeft: 15}} onPress = {toComments}>
+                    <Fontisto name = "comment" size = {30} color = "white" />
+                </TouchableOpacity>
             </View>
             <View style = {{marginBottom: 10, marginLeft: 10}} >
                 { elem.post.likes > 1 && <TouchableOpacity onPress = {toLikers}>
@@ -115,6 +67,38 @@ export default function homeScreen( {navigation} ) {
         .then((res) => setData(res));
     };
 
+    const like = async( post ) => {
+        var token = await AsyncStorage.getItem( "userToken" );
+    
+        const options = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify( {token: token, post: post} )
+        };
+    
+        await fetch( ipString + "api/user/like", options )
+        .then((res) => res.text())
+        .then((res) => alert(res));
+    };
+
+    const dislike = async( post ) => {
+        var token = await AsyncStorage.getItem( "userToken" );
+    
+        const options = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify( {token: token, post: post} )
+        };
+    
+        await fetch( ipString + "api/user/dislike", options )
+        .then((res) => res.text())
+        .then((res) => alert(res));
+    };
+
     useEffect( () => {
         setData( [] );
         getFeed();
@@ -127,8 +111,18 @@ export default function homeScreen( {navigation} ) {
         const toLikers = () => {
             navigation.navigate( "likersScreen", {post: item.post} );
         };
+        const toComments = () => {
+            navigation.navigate( "commentsScreen", {post: item.post} );
+        };
         return (
-            <Item onPress = {() => onPress()} elem = {item} toLikers = {toLikers} />
+            <Item
+                onPress = {() => onPress()}
+                elem = {item}
+                toLikers = {toLikers}
+                like = {like}
+                dislike = {dislike}
+                toComments = {toComments}
+            />
         );
     };
 

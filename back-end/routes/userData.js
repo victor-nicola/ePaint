@@ -2,6 +2,7 @@ const router = require( "express" ).Router();
 const User = require( "../models/user" );
 const Followers = require( "../models/followers" );
 const Post = require( "../models/post" );
+const Likes = require( "../models/likes" );
 const jwt = require( "jsonwebtoken" );
 
 router.post( "/getSearchedUsers", async( req, res ) => {
@@ -40,7 +41,11 @@ router.post( "/getFeed", async( req, res ) => {
     var ans = [], cnt = 0;
     for ( var i = 0; i < user.noFollowing; i ++ )
         for ( var j = 0; j < feed[i].length; j ++ ) {
-            ans[cnt] = { post: feed[i][j], user: await User.findById( { _id: feed[i][j].userId } ) };
+            const isLiked = await Likes.findOne( {userId: decodedToken._id, postId: feed[i][j]._id} );
+            var aux;
+            if ( isLiked )
+                aux = true;
+            ans[cnt] = { post: feed[i][j], user: await User.findById( { _id: feed[i][j].userId } ), isLiked: aux };
             cnt ++;
         }
 

@@ -78,20 +78,16 @@ router.post( "/dislike", async( req, res ) => {
     res.send( "Disliked" );
 });
 
-router.post( "/checkLike", async( req, res ) => {
-    var decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    const isLiked = await Likes.findOne( {userId: decodedToken._id, postId: req.body.post._id} );
-    if ( isLiked ) {
-        res.send( true );
-        return;
-    }
-    res.send( false );
-});
-
 router.post( "/getComments", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
     var comments = await Comment.find( { postId: req.body.post._id } );
-    res.send( comments );
+    var ans = [];
+    for ( var i = 0; i < req.body.post.noComments; i ++ ) {
+        const user = await User.findById( { _id: comments[i].userId } );
+        ans[cnt] = { comment: comments[i], user: user };
+        cnt ++;
+    }
+    res.send( ans );
 });
 
 router.post( "/getReplies", async( req, res ) => {
