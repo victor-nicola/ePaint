@@ -4,13 +4,14 @@ import { AntDesign, Fontisto } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EnvContext } from "../../containers/envContext";
 import { Avatar, Caption, Title } from "react-native-paper";
+import { StatusBar } from 'expo-status-bar';
 
-const Item = ( {elem, onPress, toLikers, like, dislike, toComments} ) => {
+const Item = ( {elem, toUser, toLikers, like, dislike, toComments, refresh} ) => {
     const { ipString } = useContext( EnvContext );
     
     return (
         <View>
-            <TouchableOpacity style = {{flexDirection: "row", backgroundColor: "#3b3b3b"}} onPress = {onPress}>
+            <TouchableOpacity style = {{flexDirection: "row", backgroundColor: "#3b3b3b"}} onPress = {toUser}>
                 <View style = {{flexDirection: "row", alignContent: "center"}}>
                     <Avatar.Image style = { styles.AvatarImage } source = {{uri: ipString + "images/" + elem.user.image}} size = {30} />
                     <View>
@@ -22,15 +23,18 @@ const Item = ( {elem, onPress, toLikers, like, dislike, toComments} ) => {
                 <Image style = { styles.PostImage } source = {{uri: ipString + "images/" + elem.post.image}}/>
             </View>
             <View style = {{flexDirection: "row", marginLeft: 10}}>
-                { !elem.isLiked && <TouchableOpacity onPress = {like}>
+                { !elem.isLiked && <TouchableOpacity onPress = {() => {like( elem.post ); refresh();}}>
                     <AntDesign name = "like2" size = {30} color = "white"/>
                 </TouchableOpacity> }
-                { elem.isLiked && <TouchableOpacity onPress = {dislike}>
+                { elem.isLiked && <TouchableOpacity onPress = {() => {dislike( elem.post ); refresh()}}>
                     <AntDesign name = "like1" size = {30} color = "white"/>
                 </TouchableOpacity> }
-                <TouchableOpacity style = {{paddingLeft: 15}} onPress = {toComments}>
+                { elem.post.noComments > 0 && <TouchableOpacity style = {{paddingLeft: 15}} onPress = {toComments}>
                     <Fontisto name = "comment" size = {30} color = "white" />
-                </TouchableOpacity>
+                </TouchableOpacity> }
+                { elem.post.noComments == 0 && <View style = {{paddingLeft: 15}}>
+                    <Fontisto name = "comment" size = {30} color = "white" />
+                </View> }
             </View>
             <View style = {{marginBottom: 10, marginLeft: 10}} >
                 { elem.post.likes > 1 && <TouchableOpacity onPress = {toLikers}>
@@ -42,6 +46,9 @@ const Item = ( {elem, onPress, toLikers, like, dislike, toComments} ) => {
                 { elem.post.likes == 0 && <TouchableOpacity>
                     <Caption style = {{fontSize: 13, color: "#ffffff"}}>{elem.post.likes} likes</Caption>
                 </TouchableOpacity> }
+            </View>
+            <View style = {{flexDirection: "row"}}>
+                <Caption style = {{color: "white"}}>{elem.post.caption}</Caption>
             </View>
         </View>
     );
@@ -99,13 +106,17 @@ export default function homeScreen( {navigation} ) {
         .then((res) => alert(res));
     };
 
-    useEffect( () => {
+    const refresh = () => {
         setData( [] );
         getFeed();
+    };
+
+    useEffect( () => {
+        refresh();
     },[]);
 
     const renderItem = ( {item} ) => {
-        const onPress = () => {
+        const toUser = () => {
             navigation.navigate( "userProfile", {searchedUser: item.user} );
         };
         const toLikers = () => {
@@ -116,12 +127,13 @@ export default function homeScreen( {navigation} ) {
         };
         return (
             <Item
-                onPress = {() => onPress()}
+                toUser = {toUser}
                 elem = {item}
                 toLikers = {toLikers}
                 like = {like}
                 dislike = {dislike}
                 toComments = {toComments}
+                refresh = {refresh}
             />
         );
     };

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, SafeAreaView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, TouchableOpacity } from "react-native";
 import { AuthContext } from "../../containers/authContext";
 
 export default function logIn( {navigation} ) {
@@ -24,7 +24,7 @@ export default function logIn( {navigation} ) {
 
     return (
         <View style = {{flex: 1, width: '100%'}}>
-            <View style = {styles.ViewContainer}>
+            <KeyboardAvoidingView behavior = {Platform.OS === "ios" ? "padding" : "height"} style = {styles.ViewContainer}>
                 <Text style = {styles.Text}>Log In</Text>
                 <View style = {styles.TextInputContainer}>
                     <TextInput style = {styles.TextInput} placeholder = {"Username or email"} placeholderTextColor = "#fff" onChangeText = { ( text ) => setUserString( text ) } ></TextInput>
@@ -39,7 +39,7 @@ export default function logIn( {navigation} ) {
                     <Text style = {{color: "#fff"}}>Don't have an account? </Text>
                     <Text style = {{color: "#fff", fontWeight: "bold"}} onPress = {() => navigation.navigate( "Register" )}>Sign up</Text>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </View>
     );
 };

@@ -9,7 +9,7 @@ var upload = multer( { dest: "assets/postPics/" } );
 
 router.post( "/makePost", upload.single( "image" ), async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    const user = await User.findById( { _id: decodedToken._id } );
+    const user = await User.findById( { _id: decodedToken._id }, { noPosts: 1 });
     
     if ( !req.file )
         return res.status( 400 ).send( "File does not exist!" );
@@ -32,7 +32,7 @@ router.post( "/makePost", upload.single( "image" ), async( req, res ) => {
 
 router.post( "/deletePost", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    const user = await User.findById( { _id: req.body.post.userId } );
+    const user = await User.findById( { _id: req.body.post.userId }, { noPosts: 1 } );
     await User.updateOne( { _id: user._id }, { noPosts: user.noPosts - 1 } );
     await Post.deleteOne( { _id: req.body.post._id } );
     res.send( "Deleted!" );
@@ -59,10 +59,11 @@ router.post( "/like", async( req, res ) => {
 
 router.post( "/getLikers", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    const likersList = await Likes.find( { postId: req.body.post._id } );
+    const projection = { name: 1, surname: 1, username: 1, image: 1, noFollowers: 1, noFollowing: 1 };
+    const likersList = await Likes.find( { postId: req.body.post._id }, { userId: 1 } );
     const userList = [];
     for ( var i = 0; i < req.body.post.likes; i ++ )
-        userList[i] = await User.findById( { _id: likersList[i].userId } );
+        userList[i] = await User.findById( { _id: likersList[i].userId }, projection );
     res.send( userList );
 });
 
@@ -80,10 +81,11 @@ router.post( "/dislike", async( req, res ) => {
 
 router.post( "/getComments", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    var comments = await Comment.find( { postId: req.body.post._id } );
-    var ans = [];
-    for ( var i = 0; i < req.body.post.noComments; i ++ ) {
-        const user = await User.findById( { _id: comments[i].userId } );
+    const projection = { name: 1, surname: 1, username: 1, image: 1, noFollowers: 1, noFollowing: 1 };
+    var comments = await Comment.find( { postId: req.body.post._id, fatherCommentId: { $exists: false } } );
+    var ans = [], cnt = 0;
+    for ( var i = 0; i < comments.length; i ++ ) {
+        const user = await User.findById( { _id: comments[i].userId }, projection );
         ans[cnt] = { comment: comments[i], user: user };
         cnt ++;
     }
@@ -99,9 +101,9 @@ router.post( "/getReplies", async( req, res ) => {
 router.post( "/comment", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
     const post = await Post.findById( { _id: req.body.postId } );
-    const user = await User.findById( { _id: decodedToken._id } );
+    const user = await User.findById( { _id: decodedToken._id }, { name: 1 } );
     const comm = new Comment({
-        user: user,
+        userId: user._id,
         postId: req.body.postId,
         text: req.body.text,
         noReplies: 0,

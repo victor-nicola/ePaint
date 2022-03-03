@@ -1,6 +1,6 @@
 import React from "react";
 import {useState, useEffect} from "react";
-import { View, Text, StyleSheet, TextInput, SafeAreaView, TouchableOpacity, Platform, Image, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, TouchableOpacity, Platform, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import Mime from "mime";
 import { AuthContext } from "../../containers/authContext";
@@ -69,7 +69,7 @@ export default function register( {navigation} ) {
 
     return (
         <View style = {{flex: 1, width: "100%", backgroundColor: "#3b3b3b"}}>
-            <ScrollView contentContainerStyle = {styles.ViewContainer}>
+            <KeyboardAvoidingView behavior = {Platform.OS === "ios" ? "padding" : "height"} style = {styles.ViewContainer}>
                 <Text style = {styles.Text}>Register</Text>
                 <View style = {styles.TextInputContainer}>
                     <TextInput style = {styles.TextInput} placeholder = {"Name"} placeholderTextColor = "#fff" onChangeText = { ( text ) => setName( text ) }/>
@@ -101,7 +101,7 @@ export default function register( {navigation} ) {
                     <Text style = {{color: "#fff"}}>Already have an account? </Text>
                     <Text style = {{color: "#fff", fontWeight: "bold"}} onPress = {() => navigation.goBack( null )}>Log in</Text>
                 </View>
-            </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 };
@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
         margin: 5
     },
     ViewContainer: {
+        paddingTop: 60,
         flex: 1,
         justifyContent: "center",
         alignItems: "center",

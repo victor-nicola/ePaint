@@ -7,7 +7,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <AuthStack />
-      <StatusBar style="auto" />
+      <StatusBar barStyle = {"light-content"} />
     </View>
   );
 }

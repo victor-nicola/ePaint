@@ -5,15 +5,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EnvContext } from "../../containers/envContext";
 import { Avatar, Caption, Text, Title } from "react-native-paper";
 
-const Item = ( {elem} ) => {
+const Item = ( {elem, toUser} ) => {
     const { ipString } = useContext( EnvContext );
 
     return (
-            <View style = {{flexDirection: "row", backgroundColor: "#fff", flexDirection: "row", alignContent: "center"}}>
-                <View>
-                    <Caption style = {{margin: 5, fontSize: 15, bottom: 5, color: "#fff"}}>{elem.comment.caption}</Caption>
+        <View style = {{flex: 1}}>
+            <TouchableOpacity style = {{flexDirection: "row", backgroundColor: "#3b3b3b"}} onPress = {toUser}>
+                <View style = {{flexDirection: "row", alignContent: "center"}}>
+                    <Avatar.Image style = { styles.AvatarImage } source = {{uri: ipString + "images/" + elem.user.image}} size = {30} />
+                    <View>
+                        <Title style = {{fontSize: 15, color: "#ffffff"}}>@{elem.user.username}</Title>
+                    </View>
                 </View>
+            </TouchableOpacity>
+            <View style = {{flex: 1}}>
+                <Caption style = {{fontSize: 15, color: "#ffffff"}}>{elem.comment.text}</Caption>
             </View>
+        </View>
     );
 };
 
@@ -41,17 +49,27 @@ export default function commentsScreen( {navigation, route: {params}} ) {
     useEffect( () => {
         setData( [] );
         getComments();
+        //console.log( data );
     },[]);
 
     const renderItem = ( {item} ) => {
+        const toUser = () => {
+            navigation.navigate( "userProfile", {searchedUser: item.user} );
+        };
         return (
-            <Item onPress = {() => onPress()} elem = {item} />
+            <Item 
+                elem = {item} 
+                toUser = {toUser}
+            />
         );
     };
 
     return (
         <View style = {{flex: 1, backgroundColor: "#3b3b3b"}} >
-            <View style = {styles.LogoBannerView}></View>
+            <View style = {styles.LogoBannerView}>
+                <Caption style = {{color: "#fff", paddingLeft: 60, fontSize: 15}}>{post.caption}</Caption>
+            </View>
+            <hr style = {{color: "white"}}/>
             <FlatList 
                 data = {data}
                 renderItem = {renderItem}
@@ -64,28 +82,8 @@ export default function commentsScreen( {navigation, route: {params}} ) {
 }
 
 const styles = StyleSheet.create({
-    TextInputContainer: {
-        // flex: 1,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: "#000",
-        height: 50,
-        width: '85%',
-        margin: 5,
-        justifyContent: "center"
-    },
-    TextInput: {
-        height: 50,
-        //flex: 1,
-        padding: 10,
-        //margin: 5,
-        width: "80%",
-        color: "#fff"
-        //margin: 10
-    },
     LogoBanner: {
         flexDirection: "row",
-        //marginTop: 60,
         backgroundColor: "#3b3b3b"
     },
     LogoBannerView: {
@@ -96,14 +94,6 @@ const styles = StyleSheet.create({
     },
     AvatarImage: {
         alignSelf: "center",
-        margin: 5
-    },
-    BackBtn: {
-        alignSelf: "center",
-        //position: "absolute",
-        //right: 0,
-        //backgroundColor: "#fff",
-        borderRadius: 100,
         margin: 5
     }
 });

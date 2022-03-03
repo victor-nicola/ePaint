@@ -7,18 +7,20 @@ const jwt = require( "jsonwebtoken" );
 
 router.post( "/getSearchedUsers", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
+    const projection = { name: 1, surname: 1, username: 1, image: 1, noFollowers: 1, noFollowing: 1 };
     var regex = new RegExp( "^" + req.body.searchedString, "i" );
-    const userList = await User.find( {username: regex} );
+    const userList = await User.find( {username: regex}, projection );
     res.send( userList );
 });
 
 router.post( "/getFeed", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    const user = await User.findById( { _id: decodedToken._id } );
+    const projection = { name: 1, surname: 1, username: 1, image: 1, noFollowers: 1, noFollowing: 1 };
+    const user = await User.findById( { _id: decodedToken._id }, { noFollowing: 1 } );
     var followedUsers = await Followers.find( { followerId: decodedToken._id } );
     var feed = [];
     for ( var i = 0; i < user.noFollowing; i ++ ) {
-        followedUsers[i] = await User.findById( { _id: followedUsers[i].followedId } );
+        followedUsers[i] = await User.findById( { _id: followedUsers[i].followedId }, { noFollowers: 1 } );
     }
     followedUsers.sort( ( a, b ) => {
         if ( a.noFollowers < b.noFollowers )
@@ -42,10 +44,10 @@ router.post( "/getFeed", async( req, res ) => {
     for ( var i = 0; i < user.noFollowing; i ++ )
         for ( var j = 0; j < feed[i].length; j ++ ) {
             const isLiked = await Likes.findOne( {userId: decodedToken._id, postId: feed[i][j]._id} );
-            var aux;
+            var aux = false;
             if ( isLiked )
                 aux = true;
-            ans[cnt] = { post: feed[i][j], user: await User.findById( { _id: feed[i][j].userId } ), isLiked: aux };
+            ans[cnt] = { post: feed[i][j], user: await User.findById( { _id: feed[i][j].userId }, projection ), isLiked: aux };
             cnt ++;
         }
 
@@ -54,21 +56,22 @@ router.post( "/getFeed", async( req, res ) => {
 
 router.post( "/getFollowers", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    const followersList = await Followers.find( { followedId: req.body.user._id } );
+    const projection = { name: 1, surname: 1, username: 1, image: 1, noFollowers: 1, noFollowing: 1 };
+    const followersList = await Followers.find( { followedId: req.body.user._id }, { followerId: 1 } );
     const userList = [];
     for ( var i = 0; i < req.body.user.noFollowers; i ++ ) {
-        userList[i] = await User.findById( { _id: followersList[i].followerId } );
+        userList[i] = await User.findById( { _id: followersList[i].followerId }, projection );
     }
     res.send( userList );
 });
 
 router.post( "/getFollowedUsers", async( req, res ) => {
     const decodedToken = jwt.verify( req.body.token, process.env.TOKEN_SECRET );
-    const followingList = await Followers.find( { followerId: req.body.user._id } );
+    const projection = { name: 1, surname: 1, username: 1, image: 1, noFollowers: 1, noFollowing: 1 };
+    const followingList = await Followers.find( { followerId: req.body.user._id }, { followedId: 1 } );
     const userList = [];
     for ( var i = 0; i < req.body.user.noFollowing; i ++ ) {
-        const aux = await User.findById( { _id: followingList[i].followedId } );
-        userList[i] = aux;
+        userList[i] = await User.findById( { _id: followingList[i].followedId }, projection );
     }
     res.send( userList );
 });
