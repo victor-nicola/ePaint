@@ -23,10 +23,10 @@ const Item = ( {elem, toUser, toLikers, like, dislike, toComments, refresh} ) =>
                 <Image style = { styles.PostImage } source = {{uri: ipString + "images/" + elem.post.image}}/>
             </View>
             <View style = {{flexDirection: "row", marginLeft: 10}}>
-                { !elem.isLiked && <TouchableOpacity onPress = {() => {like( elem.post ); refresh();}}>
+                { !elem.isLiked && <TouchableOpacity onPress = {() => {like( elem.post ); refresh( elem, 1 );}}>
                     <AntDesign name = "like2" size = {30} color = "white"/>
                 </TouchableOpacity> }
-                { elem.isLiked && <TouchableOpacity onPress = {() => {dislike( elem.post ); refresh()}}>
+                { elem.isLiked && <TouchableOpacity onPress = {() => {dislike( elem.post ); refresh( elem, -1 )}}>
                     <AntDesign name = "like1" size = {30} color = "white"/>
                 </TouchableOpacity> }
                 { elem.post.noComments > 0 && <TouchableOpacity style = {{paddingLeft: 15}} onPress = {toComments}>
@@ -106,13 +106,15 @@ export default function homeScreen( {navigation} ) {
         .then((res) => alert(res));
     };
 
-    const refresh = () => {
-        setData( [] );
-        getFeed();
+    const refresh = ( elem, sign ) => {
+        elem.isLiked = !elem.isLiked;
+        //elem.post.likes += sign;
+        setData( [...data] );
     };
 
     useEffect( () => {
-        refresh();
+        setData( [] );
+        getFeed();
     },[]);
 
     const renderItem = ( {item} ) => {
@@ -148,6 +150,7 @@ export default function homeScreen( {navigation} ) {
             </View>
             <FlatList 
                 data = {data}
+                extraData = {data}
                 renderItem = {renderItem}
                 keyExtractor = {item => item.post._id}
                 scrollEnabled = {true}
