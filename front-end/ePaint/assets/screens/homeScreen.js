@@ -23,10 +23,10 @@ const Item = ( {elem, toUser, toLikers, like, dislike, toComments, refresh} ) =>
                 <Image style = { styles.PostImage } source = {{uri: ipString + "images/" + elem.post.image}}/>
             </View>
             <View style = {{flexDirection: "row", marginLeft: 10}}>
-                { !elem.isLiked && <TouchableOpacity onPress = {() => {like( elem.post ); refresh( elem, 1 );}}>
+                { !elem.isLiked && <TouchableOpacity onPress = {() => { like( elem ); }}>
                     <AntDesign name = "like2" size = {30} color = "white"/>
                 </TouchableOpacity> }
-                { elem.isLiked && <TouchableOpacity onPress = {() => {dislike( elem.post ); refresh( elem, -1 )}}>
+                { elem.isLiked && <TouchableOpacity onPress = {() => { dislike( elem ); }}>
                     <AntDesign name = "like1" size = {30} color = "white"/>
                 </TouchableOpacity> }
                 { elem.post.noComments > 0 && <TouchableOpacity style = {{paddingLeft: 15}} onPress = {toComments}>
@@ -74,7 +74,7 @@ export default function homeScreen( {navigation} ) {
         .then((res) => setData(res));
     };
 
-    const like = async( post ) => {
+    const like = async( elem ) => {
         var token = await AsyncStorage.getItem( "userToken" );
     
         const options = {
@@ -82,15 +82,16 @@ export default function homeScreen( {navigation} ) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify( {token: token, post: post} )
+            body: JSON.stringify( {token: token, post: elem.post} )
         };
     
         await fetch( ipString + "api/user/like", options )
         .then((res) => res.text())
         .then((res) => alert(res));
+        setTimeout( () => refresh( elem, 1 ), 10 );
     };
 
-    const dislike = async( post ) => {
+    const dislike = async( elem ) => {
         var token = await AsyncStorage.getItem( "userToken" );
     
         const options = {
@@ -98,17 +99,18 @@ export default function homeScreen( {navigation} ) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify( {token: token, post: post} )
+            body: JSON.stringify( {token: token, post: elem.post} )
         };
     
         await fetch( ipString + "api/user/dislike", options )
         .then((res) => res.text())
         .then((res) => alert(res));
+        setTimeout( () => refresh( elem, -1 ), 10 );
     };
 
     const refresh = ( elem, sign ) => {
         elem.isLiked = !elem.isLiked;
-        //elem.post.likes += sign;
+        elem.post.likes += sign;
         setData( [...data] );
     };
 
